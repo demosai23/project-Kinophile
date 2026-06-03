@@ -1,5 +1,10 @@
 process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION:', err);
+  console.error('UNCAUGHT EXCEPTION:', err.message);
+  console.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('UNHANDLED REJECTION:', reason);
 });
 
 import express from 'express';
@@ -23,6 +28,13 @@ import notificationRoutes from './routes/notificationRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import statsRoutes from './routes/statsRoutes.js';
 import diaryRoutes from './routes/diaryRoutes.js';
+
+console.log('ENV CHECK:', {
+  MONGO_URI: process.env.MONGO_URI ? 'set' : 'MISSING',
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET ? 'set' : 'MISSING',
+  PORT: process.env.PORT,
+  NODE_ENV: process.env.NODE_ENV,
+});
 
 dotenv.config();
 
