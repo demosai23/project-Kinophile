@@ -1,3 +1,7 @@
+process.on('uncaughtException', (err) => {
+  console.error('UNCAUGHT EXCEPTION:', err);
+});
+
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
