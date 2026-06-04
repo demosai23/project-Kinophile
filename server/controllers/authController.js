@@ -83,7 +83,14 @@ export const login = asyncHandler(async (req, res) => {
   user.refreshToken = refreshToken;
   await user.save({ validateModifiedOnly: true });
 
-  setRefreshTokenCookie(res, refreshToken);
+  const setRefreshTokenCookie = (res, token) => {
+  res.cookie('refreshToken', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'none',
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+  });
+};
 
   res.json({ user, accessToken });
 });
@@ -131,10 +138,10 @@ export const logout = asyncHandler(async (req, res) => {
   }
 
   res.clearCookie('refreshToken', {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-  });
+  httpOnly: true,
+  secure: true,
+  sameSite: 'none',
+});
 
   res.json({ message: 'Logged out successfully' });
 });

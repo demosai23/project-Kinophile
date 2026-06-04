@@ -33,21 +33,36 @@ export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
 
   useEffect(() => {
-    const restoreSession = async () => {
-      try {
-        const { data } = await api.post('/auth/refresh');
-        window.__kinophile_access_token = data.accessToken;
+  const restoreSession = async () => {
+    try {
+      // Try to restore from localStorage first
+      const savedToken = localStorage.getItem('kinophile_token');
+      if (savedToken) {
+        window.__kinophile_access_token = savedToken;
         const { data: meData } = await api.get('/auth/me');
         dispatch({
           type: 'AUTH_SUCCESS',
-          payload: { user: meData.user, accessToken: data.accessToken },
+          payload: { user: meData.user, accessToken: savedToken },
         });
-      } catch {
-        dispatch({ type: 'AUTH_FAIL', payload: null });
+        return;
       }
-    };
-    restoreSession();
-  }, []);
+
+      // Fall back to refresh token cookie
+      const { data } = await api.post('/auth/refresh');
+      window.__kinophile_access_token = data.accessToken;
+      localStorage.setItem('kinophile_token', data.accessToken);
+      const { data: meData } = await api.get('/auth/me');
+      dispatch({
+        type: 'AUTH_SUCCESS',
+        payload: { user: meData.user, accessToken: data.accessToken },
+      });
+    } catch {
+      localStorage.removeItem('kinophile_token');
+      dispatch({ type: 'AUTH_FAIL', payload: null });
+    }
+  };
+  restoreSession();
+}, []);
 
   const register = useCallback(async ({ username, email, password }) => {
     dispatch({ type: 'SET_LOADING', payload: true });
